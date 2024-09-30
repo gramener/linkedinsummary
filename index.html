@@ -48,13 +48,13 @@
 
       async function generateSummary(profileText, companyName) {
         const profileSummary = await fetchAIResponse([
-          { role: "system", content: "Summarize the LinkedIn profile. Provide the output in HTML format with appropriate headings and paragraphs., dont show '''html''' in output" },
+          { role: "system", content: "Create a persona intelligence report, focusing on main skills, nature of work, responsibilites and present role based on this LinkedIn profile, which needed to be presented to the sales head of an analytics company. Make it short and crispy .Provide the output in HTML format with appropriate headings and paragraphs., dont show '''html''' in output" },
           //{ role: "system", content: "Please summarize the following LinkedIn profile, focusing on key skills, experience, and achievements:" },
           { role: "user", content: profileText }
         ]);
 
         const companySummary = await fetchAIResponse([
-          { role: "system", content: "Based on the company name provided, generate a brief summary about the company, including its main business, location, and any other relevant details you can infer. Provide the output in HTML format.dont show ''html''' in the output" },
+          { role: "system", content: "Based on the company name provided, generate a brief summary about the company, including its main business, location, any AI & analytics news along with their new initiatives if they have any, and any other relevant details you can infer. Provide the output in HTML format.dont show ''html''' in the output" },
           //{ role: "system", content: "Please summarize the following LinkedIn profile, focusing on key skills, experience, and achievements:" },
           { role: "user", content: `Company Name: ${companyName}` }
         ]);
