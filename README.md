@@ -26,3 +26,6 @@ This web application allows users to generate a summary of a LinkedIn profile an
 4. Click on "Generate Summary" to see the generated profile and company summaries.
 5. Toggle between themes using the theme dropdown.
 6. Click on "Save as PDF" to save the summary as a PDF file.
+
+##Authors 
+- Prudhvi - prudhvi.krovvidi@straive.com
