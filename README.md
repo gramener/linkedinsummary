@@ -27,5 +27,5 @@ This web application allows users to generate a summary of a LinkedIn profile an
 5. Toggle between themes using the theme dropdown.
 6. Click on "Save as PDF" to save the summary as a PDF file.
 
-##Authors 
+## Authors 
 - Prudhvi - prudhvi.krovvidi@straive.com
