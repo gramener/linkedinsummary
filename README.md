@@ -2,6 +2,9 @@
 
 This web application allows users to generate a summary of a LinkedIn profile and a brief summary of a company based on the company name provided. The summaries are generated using AI responses and displayed in HTML format.
 
+## Try It Out
+[Live Demo](https://linkedinsummary.straive.app/)
+
 ## Features
 - Upload a LinkedIn profile PDF to generate a profile summary.
 - Enter a company name to generate a company summary.
