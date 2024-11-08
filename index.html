@@ -49,15 +49,20 @@
 
       async function generateSummary(profileText, companyName) {
         const profileSummary = await fetchAIResponse([
-          { role: "system", content: "Create a persona intelligence report, focusing on main skills, nature of work, responsibilites and present role based on this LinkedIn profile, which needed to be presented to the sales head of an analytics company. Make it short and crispy .Provide the output in HTML format with appropriate headings and paragraphs., dont show '''html''' in output" }, //change your prompt here if needed 
-          
+          { role: "system", content: "Create a persona intelligence report, focusing on main skills, nature of work, responsibilites and present role based on this LinkedIn profile, which needed to be presented to the sales head of an analytics company. Make it short and crispy .Provide the output in HTML format with appropriate headings and paragraphs., dont show '''html''' in output" }, //change your prompt here if needed
+
           { role: "user", content: profileText }
         ]);
 
-        const companySummary = await fetchAIResponse([
+        // Check if companyName is provided; if not, extract it from profileText
+        const companySummary = companyName ? await fetchAIResponse([
           { role: "system", content: "Based on the company name provided, generate a brief summary about the company, including its main business, location, any AI & analytics news along with their new initiatives if they have any, and any other relevant details you can infer. Provide the output in HTML format.dont show ''html''' in the output" }, //change your prompt here if needed
           { role: "user", content: `Company Name: ${companyName}` }
+        ]) : await fetchAIResponse([
+          { role: "system", content: "Extract the company name from the LinkedIn profile text and generate a brief summary about the company, including its main business, location, any AI & analytics news along with their new initiatives if they have any, and any other relevant details you can infer. Provide the output in HTML format.dont show ''html''' in the output" }, //change your prompt here if needed
+          { role: "user", content: profileText }
         ]);
+
         const cleanProfileSummary = profileSummary.replace(/^html\n|$/g, '');
         const cleanCompanySummary = companySummary.replace(/^html\n|$/g, '');
 
@@ -117,20 +122,21 @@
               try {
                   const pdfFile = pdfInput.files[0];
                   const profileText = await extractTextFromPDF(pdfFile);
-                  const companyName = companyInput.value;
+                  const companyName = companyInput.value.trim() || null; // Use null if the input is empty
                   const summary = await generateSummary(profileText, companyName);
                   summaryArea.innerHTML = summary;
               } catch (error) {
                   errorAlert.textContent = `Error: ${error.message}`;
               } finally {
                   loadingSpinner.classList.add("d-none");
+                  document.getElementById("draft-email").classList.remove("d-none"); // Show Draft Email button
               }
           });
 
           // Add event listener for the Save as PDF button
           savePdfButton.addEventListener("click", () => {
             const element = document.querySelector("#summary");
-            
+
             // Store the original styles
             const originalBackgroundColor = element.style.backgroundColor;
             const originalColor = element.style.color;
@@ -167,6 +173,58 @@
                 showActiveTheme(theme, true);
               }
             });
+          });
+
+          // Add event listener for the Draft Email button
+          document.getElementById("draft-email").addEventListener("click", async () => {
+              const pdfFile = pdfInput.files[0];
+              const profileText = await extractTextFromPDF(pdfFile);
+              const emailPrompt = `
+                You are an Outbound Sales Consultant at Straive's Analytics & AI service line. You have to write a professional introductory email to senior executives at potential customers. I will provide the profile of the senior executive to you. Based on that write the email.
+                The instructions are as below:
+                • Write in professional manner
+                • Make it very personalized based on their resume that I will share
+                • Find out the common interest areas for the based on the profile and what Straive's Analytics & AI service line has to offer.
+                • Provide at least three one liner case studies relevant for them (you can make up these case studies)
+                • Just say you are a Solution Consultant at Straive
+                • Don't write long sentences and paragraphs and be concise and use bullet points where required.
+                • Don't have too much dramatic language
+              `;
+              // Show spinner
+              const spinner = document.getElementById("draft-email-spinner");
+              spinner.classList.remove("d-none");
+              const emailContent = await fetchAIResponse([
+                  { role: "system", content: emailPrompt },
+                  { role: "user", content: profileText }
+              ]);
+              // Hide spinner
+              spinner.classList.add("d-none");
+              // Display the email content in the designated div
+              const emailContentDiv = document.getElementById("email-content");
+              emailContentDiv.innerText = emailContent; // Set the email content as plain text
+              emailContentDiv.classList.remove("d-none"); // Show the email content div
+
+              // Show the Copy button
+              document.getElementById("copy-email").classList.remove("d-none");
+          });
+
+          // Add event listener for the Copy button
+          document.getElementById("copy-email").addEventListener("click", () => {
+              const emailContent = document.getElementById("email-content").innerText;
+              navigator.clipboard.writeText(emailContent).then(() => {
+                  // Create a notification element
+                  const notification = document.createElement('div');
+                  notification.className = 'notification';
+                  notification.textContent = "Email content copied to clipboard!";
+                  document.body.appendChild(notification);
+
+                  // Show the notification for 2 seconds
+                  setTimeout(() => {
+                      notification.remove();
+                  }, 2000);
+              }).catch(err => {
+                  console.error("Failed to copy: ", err);
+              });
           });
       });
 
@@ -212,6 +270,17 @@
         max-width: 40rem;
         margin-left: auto;
         margin-right: auto;
+      }
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #28a745; /* Green background */
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 1000; /* Ensure it appears above other content */
+        transition: opacity 0.5s ease;
       }
     </style>
   </head>
@@ -260,7 +329,6 @@
               id="company"
               placeholder="Enter Company Name"
               class="form-control"
-              required
             />
           </div>
         </div>
@@ -274,9 +342,19 @@
       <div class="alert alert-danger d-none mt-3" id="error" role="alert"></div>
       <h2 class="mt-4">Summary:</h2>
       <div id="summary" class="border p-3 mt-3"></div>
-      <button id="save-pdf" class="btn btn-success">
-        <i class="bi bi-file-earmark-pdf me-2"></i>Save as PDF
-      </button>
+      <div class="d-flex justify-content-between align-items-center mt-3"> <!-- Flex container for alignment -->
+          <button id="draft-email" class="btn btn-info d-none">
+              <i class="bi bi-envelope me-2"></i>Draft e-mail
+              <span id="draft-email-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+          <button id="copy-email" class="btn btn-secondary d-none"> <!-- New Copy button -->
+              <i class="bi bi-clipboard me-2"></i>Copy Email
+          </button>
+          <button id="save-pdf" class="btn btn-primary" style="margin-bottom: 25px;"> <!-- Assuming this is your Save as PDF button -->
+              <i class="bi bi-file-earmark-pdf me-2"></i>Save as PDF
+          </button>
+      </div>
+      <div id="email-content" class="border p-3 mt-3 d-none"></div>
     </div>
   </body>
 </html>
