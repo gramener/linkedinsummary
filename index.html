@@ -181,7 +181,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const demos = await response.json();
-                return demos.map(demo => `${demo.Project} (${demo.Industry}): ${demo.Description}`).join('\n');
+                return demos.map(demo => `${demo.Project}: ${demo.Description}`).join('\n');
             } catch (error) {
                 console.error("Failed to fetch demo list: ", error);
                 return "No demos available."; // Fallback message
@@ -192,6 +192,7 @@
           document.getElementById("draft-email").addEventListener("click", async () => {
               const pdfFile = pdfInput.files[0];
               const profileText = await extractTextFromPDF(pdfFile);
+              const demoList = await fetchDemoList();
               const emailPrompt = `
                 You are an Solution Consultant at Straive's Analytics & AI service line. You have to write a professional introductory email to senior executives at potential customers. I will provide the profile of the senior executive to you. Based on that write the email.
                 The instructions are as below:
@@ -204,7 +205,7 @@
                   - Benefits: Mention the benefits for their priorities, always include a specific relevant metric(with percentage) along with benifit of specific use case.
                   Communicate briefly and concisely. Convey rich information for a professional business context.
                   List of demos in Demo: Description format:
-                  ${await fetchDemoList()} // Extracting demo list from data.json
+                  ${demoList}
                 • Don't write long sentences and paragraphs and be concise and use bullet points where required.
                 • Don't have too much dramatic language
               `;
