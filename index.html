@@ -175,9 +175,17 @@
             });
           });
           async function fetchDemoList() {
-            const response = await fetch('data.json');
-            const demos = await response.json();
-            return demos.map(demo => `${demo.Project}: ${demo.Description}`).join('\n');
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const demos = await response.json();
+                return demos.map(demo => `${demo.Project} (${demo.Industry}): ${demo.Description}`).join('\n');
+            } catch (error) {
+                console.error("Failed to fetch demo list: ", error);
+                return "No demos available."; // Fallback message
+            }
           }
 
           // Add event listener for the Draft Email button
