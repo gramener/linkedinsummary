@@ -174,19 +174,29 @@
               }
             });
           });
+          async function fetchDemoList() {
+            const response = await fetch('data.json');
+            const demos = await response.json();
+            return demos.map(demo => `${demo.Project}: ${demo.Description}`).join('\n');
+          }
 
           // Add event listener for the Draft Email button
           document.getElementById("draft-email").addEventListener("click", async () => {
               const pdfFile = pdfInput.files[0];
               const profileText = await extractTextFromPDF(pdfFile);
               const emailPrompt = `
-                You are an Outbound Sales Consultant at Straive's Analytics & AI service line. You have to write a professional introductory email to senior executives at potential customers. I will provide the profile of the senior executive to you. Based on that write the email.
+                You are an Solution Consultant at Straive's Analytics & AI service line. You have to write a professional introductory email to senior executives at potential customers. I will provide the profile of the senior executive to you. Based on that write the email.
                 The instructions are as below:
                 • Write in professional manner
                 • Make it very personalized based on their resume that I will share
                 • Find out the common interest areas for the based on the profile and what Straive's Analytics & AI service line has to offer.
-                • Provide at least three one liner case studies relevant for them (you can make up these case studies)
-                • Just say you are a Solution Consultant at Straive
+                • Provide FIVE LLM use cases relevant for them:
+                  You are an expert business consultant. Given an industry, person's role and key responsibilities (available in the summary)
+                  - Demo: Mention the most relevant demos from the list below. Mention the EXACT demo name, along with the benefits for their priorities, including a specific relevant metric.
+                  Communicate briefly and concisely. Convey rich information for a professional business context.
+                  Demos have description and Industry, try to match them, if the Industry in demo list is "null", use your intelligence.
+                  List of demos in Demo: Description format:
+                  ${await fetchDemoList()} // Extracting demo list from data.json
                 • Don't write long sentences and paragraphs and be concise and use bullet points where required.
                 • Don't have too much dramatic language
               `;
